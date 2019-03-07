@@ -34,7 +34,7 @@ module Database.Relational.Projectable (
   -- * Operators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  and', or', in',
+  and', or', in', inMaybe',
 
   (.||.), (?||?), like, likeMaybe, like', likeMaybe',
   (.+.), (.-.), (.*.), (./.),
@@ -394,8 +394,13 @@ caseMaybe v cs = case' v cs nothing
 -- | Binary operator corresponding SQL /IN/ .
 in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
-in' a lp = unsafeProjectSql' . SQL.paren
-           $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
+in' = inMaybe' . Record.just
+
+-- | Binary operator corresponding SQL /IN/ .
+inMaybe' :: OperatorContext c
+         => Record c (Maybe t) -> RecordList (Record c) t -> Record c (Maybe Bool)
+inMaybe' a lp = unsafeProjectSql' . SQL.paren
+                $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
